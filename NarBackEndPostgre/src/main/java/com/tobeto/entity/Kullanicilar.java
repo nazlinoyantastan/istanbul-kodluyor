@@ -41,6 +41,8 @@ public class Kullanicilar implements Serializable {
 		return this.id;
 	}
 
+	// deneme git commit
+
 	public void setId(UUID id) {
 		this.id = id;
 	}
