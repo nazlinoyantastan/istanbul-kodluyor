@@ -13,7 +13,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.NamedQuery;
 
 /**
- * The persistent class for the kullanicilar database table.
+ * The persistent class for the kullanicilar database table. deneme
  * 
  */
 @Entity
