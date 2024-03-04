@@ -13,6 +13,8 @@ public class FlyWayConfig {
 	@Autowired
 	private DataSource dataSource;
 
+	// deneme
+
 	@Bean
 	FlywayMigrationStrategy flywayMigrationStrategy() {
 		return (flywayOld) -> {
