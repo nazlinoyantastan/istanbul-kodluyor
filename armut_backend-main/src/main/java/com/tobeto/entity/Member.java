@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.List;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
@@ -18,15 +20,16 @@ import lombok.ToString;
  */
 @Entity
 @Data
-@NamedQuery(name = "User.findAll", query = "SELECT u FROM User u")
+@NamedQuery(name = "Member.findAll", query = "SELECT m FROM Member m")
 @ToString(exclude = { "roles" })
 @EqualsAndHashCode(exclude = { "roles" })
-@Table(name = "user")
-public class User implements Serializable {
+@Table(name = "member")
+public class Member implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
 	private String email;
@@ -35,7 +38,7 @@ public class User implements Serializable {
 
 	// bi-directional many-to-one association to Role
 
-	@OneToMany(mappedBy = "user")
+	@OneToMany(mappedBy = "member")
 
 	private List<Role> roles;
 

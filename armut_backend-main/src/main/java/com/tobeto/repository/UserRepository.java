@@ -4,10 +4,10 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.tobeto.entity.User;
+import com.tobeto.entity.Member;
 
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<Member, Integer> {
 
-	Optional<User> findByEmail(String email);
+	Optional<Member> findByEmail(String email);
 
 }

@@ -23,7 +23,7 @@ public class Role implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
 	@Column(name = "role_name")
@@ -32,7 +32,7 @@ public class Role implements Serializable {
 	// bi-directional many-to-one association to Kullanici
 
 	@ManyToOne
-	@JoinColumn(name = "user_id")
-	private User user;
+	@JoinColumn(name = "member_id")
+	private Member member;
 
 }

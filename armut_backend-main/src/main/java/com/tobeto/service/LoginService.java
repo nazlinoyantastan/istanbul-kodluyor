@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.tobeto.entity.User;
+import com.tobeto.entity.Member;
 
 @Service
 public class LoginService {
@@ -22,7 +22,7 @@ public class LoginService {
 	 */
 
 	public String login(String email, String password) {
-		Optional<User> oUser = userService.getUserByEmail(email);
+		Optional<Member> oUser = userService.getUserByEmail(email);
 		if (oUser.isPresent() && oUser.get().getPassword().equals(password)) {
 			String token = tokenService.createToken(email);
 			return token;
@@ -32,7 +32,7 @@ public class LoginService {
 	}
 
 	public String signup(String email, String password) {
-		User user = new User();
+		Member user = new Member();
 		user.setEmail(email);
 		user.setPassword(password);
 		userService.createUser(user);
