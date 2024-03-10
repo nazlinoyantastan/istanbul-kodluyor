@@ -23,4 +23,13 @@ public class LoginController {
 		responseDTO.setToken(token);
 		return responseDTO;
 	}
+
+	@PostMapping("/signup")
+	public LoginResponseDTO signup(@RequestBody LoginRequestDTO dto) {
+		String token = loginService.signup(dto.getEmail(), dto.getPassword());
+		LoginResponseDTO responseDTO = new LoginResponseDTO();
+		responseDTO.setToken(token);
+		return responseDTO;
+	}
+
 }
