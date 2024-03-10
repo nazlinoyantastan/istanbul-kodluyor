@@ -7,19 +7,21 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * The persistent class for the kullanici database table.
+ * The persistent class for the user database table.
  * 
  */
 @Entity
 @Data
-@NamedQuery(name = "User.findAll", query = "SELECT k FROM Kullanici k")
+@NamedQuery(name = "User.findAll", query = "SELECT u FROM User u")
 @ToString(exclude = { "roles" })
 @EqualsAndHashCode(exclude = { "roles" })
+@Table(name = "user")
 public class User implements Serializable {
 
 	private static final long serialVersionUID = 1L;
