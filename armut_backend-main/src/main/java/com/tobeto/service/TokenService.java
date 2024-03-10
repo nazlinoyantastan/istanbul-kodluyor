@@ -2,12 +2,21 @@ package com.tobeto.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.tobeto.entity.Member;
+import com.tobeto.entity.Role;
+import com.tobeto.repository.RoleRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
@@ -22,12 +31,33 @@ public class TokenService {
 	@Value("${SECRET_KEY:'Dan4gIt9bTcngt+W5iZcfj8NgSDKkeF8ZqEak3kSoHRebI9AkNSxSWmRZwlG+kXAjAJWuQy/mH6jCnmDOVehdA=='}")
 	private String KEY;
 
-	public String createToken(String email) {
+	@Autowired
+	private RoleRepository roleRepository;
+
+	public String createToken(Member user) {
+		List<Role> dbRoller = roleRepository.findByMemberId(user.getId());
+
 		JwtBuilder builder = Jwts.builder();
 
 		Instant tarih = Instant.now().plus(15, ChronoUnit.MINUTES);
+		Map<String, Object> customKeys = new HashMap<String, Object>();
 
-		builder = builder.subject("login").id(email).issuedAt(new Date()).expiration(Date.from(tarih));
+		List<String> roller = new ArrayList<String>();
+
+//      dbRoller.forEach(r -> roller.add(r.getRoleName()));
+
+//      for (Role r : dbRoller) {
+//          roller.add(r.getRoleName());
+//      }
+
+		for (int i = 0; i < dbRoller.size(); i++) {
+			roller.add(dbRoller.get(i).getRoleName());
+		}
+
+		customKeys.put("roller", roller);
+
+		builder = builder.claims(customKeys).subject("login").id(user.getEmail()).issuedAt(new Date())
+				.expiration(Date.from(tarih));
 
 		return builder.signWith(getKey()).compact();
 	}
