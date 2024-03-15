@@ -20,4 +20,8 @@ public class FruitService {
 	public List<Fruit> getAllFruits() {
 		return fruitRepository.findAll();
 	}
+
+	public void deleteFruit(int id) {
+		fruitRepository.deleteById(id);
+	}
 }

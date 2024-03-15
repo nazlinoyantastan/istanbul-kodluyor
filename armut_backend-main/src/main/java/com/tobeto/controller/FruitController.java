@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tobeto.dto.CreateFruitRequestDTO;
+import com.tobeto.dto.DeleteFruitRequestDTO;
 import com.tobeto.dto.FruitResponseDTO;
 import com.tobeto.dto.SuccessResponseDTO;
 import com.tobeto.entity.Fruit;
@@ -34,6 +35,12 @@ public class FruitController {
 	public SuccessResponseDTO createFruit(@RequestBody CreateFruitRequestDTO dto) {
 		Fruit fruit = requestMapper.map(dto, Fruit.class);
 		fruitService.createFruit(fruit);
+		return new SuccessResponseDTO();
+	}
+
+	@PostMapping("/delete")
+	public SuccessResponseDTO deleteFruit(@RequestBody DeleteFruitRequestDTO dto) {
+		fruitService.deleteFruit(dto.getId());
 		return new SuccessResponseDTO();
 	}
 
