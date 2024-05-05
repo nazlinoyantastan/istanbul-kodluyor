@@ -66,6 +66,20 @@ public class UserController {
 		return ResponseEntity.ok(new SignupResponseDTO(token));
 	}
 
+	@PostMapping("/addUser")
+	public ResponseEntity<SignupResponseDTO> adminSignUp(@Validated @RequestBody SignupRequestDTO signupRequestDTO) {
+
+		/*
+		 * User user = loginService.adminSignUp(signupRequestDTO.getEmail(),
+		 * signupRequestDTO.getPassword(), signupRequestDTO.getRoles()); String token =
+		 * tokenService.createToken(user); return ResponseEntity.ok(new
+		 * SignupResponseDTO(token));
+		 */
+		String token = loginService.adminSignUp(signupRequestDTO.getEmail(), signupRequestDTO.getPassword(),
+				signupRequestDTO.getRoles());
+		return ResponseEntity.ok(new SignupResponseDTO(token)); // SignupResponseDTO ile cevap dön
+	}
+
 	@PostMapping("/user/update")
 	public SuccessResponseDTO userUpdate(@RequestBody UserDTO userDTO) {
 		User user = requestMapper.map(userDTO, User.class);
