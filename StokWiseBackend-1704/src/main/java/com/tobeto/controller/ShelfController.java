@@ -101,13 +101,10 @@ public class ShelfController {
 	}
 
 	@PostMapping("/entryProduct")
-	public ResponseEntity<String> entryProduct(@RequestBody EntryProductRequestDTO request) {
-		try {
-			shelfService.entryProduct(request.getProductId(), request.getCount());
-			return ResponseEntity.ok("Product added successfully on the shelf!");
-		} catch (ServiceException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-		}
+	public SuccessResponseDTO entryProduct(@RequestBody EntryProductRequestDTO request) {
+		shelfService.entryProduct(request.getProductId(), request.getCount());
+		return new SuccessResponseDTO("Shelf entry successfully!");
+
 	}
 
 	// ÜRÜN ÇIKIŞI

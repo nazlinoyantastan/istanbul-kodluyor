@@ -31,8 +31,7 @@ public class LoginService {
 	@Transactional
 	public String login(String email, String password) {
 		Optional<User> optionalUser = userService.getUserByEmail(email);
-		if (optionalUser.isPresent()
-				&& optionalUser.get().getPassword().equals(password)) {
+		if (optionalUser.isPresent() && optionalUser.get().getPassword().equals(password)) {
 			String token = tokenService.createToken(optionalUser.get());
 			return token;
 		} else {
@@ -44,12 +43,11 @@ public class LoginService {
 	public User userSignUp(String email, String password) {
 		User user = new User();
 		List<Role> userRoles = roleRepository.findAll();
-		userRoles = userRoles.stream().filter(r -> !r.getName().equals("admin")) // &&
-																					// !r.getName().equals("admin"))
-				.toList();
+		userRoles = userRoles.stream()
+				.filter(r -> !r.getName().equals("admin") && !r.getName().equals("warehouse-supervisor")).toList();
 		user.setEmail(email);
 		user.setPassword(password);// password encrypt
-									// edilecek
+// edilecek
 		user.setRoles(userRoles);
 
 		return userRepository.save(user);
@@ -60,7 +58,7 @@ public class LoginService {
 		List<Role> userRole = roleRepository.findAll();
 		user.setEmail(email);
 		user.setPassword(password);// password encrypt
-									// edilecek
+// edilecek
 		user.setRoles(userRole);
 		userService.createUser(user);
 		return tokenService.createToken(user);

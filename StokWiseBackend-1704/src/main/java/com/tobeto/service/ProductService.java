@@ -1,10 +1,7 @@
 package com.tobeto.service;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -91,6 +88,8 @@ public class ProductService {
 		productRepository.deleteById(id);
 	}
 
+	///////////////// BURADAN SONRASI EKLENDİ
+
 	public Product getProduct(UUID productId) { // getFruit
 		Optional<Product> oProduct = productRepository.findById(productId);
 		Product product = null;
@@ -113,12 +112,32 @@ public class ProductService {
 
 		// Negatif stok miktarını önlemek için kontrol
 		if (newStock < 0) {
-			throw new ServiceException(ERROR_CODES.NOT_ENOUGH_SHELF);
+			throw new ServiceException(ERROR_CODES.NOT_ENOUGH_SHELF); // hata
+																		// kodundan
+																		// emin
+																		// değilim
 		}
 
 		// Yeni stok miktarını güncelle
 		product.setUnitInStock(newStock);
 		productRepository.save(product);
+	}
+
+	// depodan ürün gönderimi için aşağıdaki kısımları yazdım
+
+	// öncelikle gelen id li ürünün raflarda olup olmadığını
+	// kontrol eden metodu yazdım
+
+	private ShelfProduct getProductFromShelf(UUID productId) {
+		Optional<ShelfProduct> oProduct = shelfProductRepository.findFirstByProductId(productId);
+		ShelfProduct product = null;
+		if (oProduct.isPresent()) {
+			product = oProduct.get();
+		} else {
+			// product bulunamadı. hata ver
+			throw new ServiceException(ERROR_CODES.PRODUCT_NOT_FOUND);
+		}
+		return product;
 	}
 
 	// Yeni metod: Stok miktarını azaltır.
@@ -140,18 +159,6 @@ public class ProductService {
 		product.setUnitInStock(newStock);
 		product.setQuantity(newQuantity);
 		productRepository.save(product);
-	}
-
-	private ShelfProduct getProductFromShelf(UUID productId) {
-		Optional<ShelfProduct> oProduct = shelfProductRepository.findFirstByProductId(productId);
-		ShelfProduct product = null;
-		if (oProduct.isPresent()) {
-			product = oProduct.get();
-		} else {
-			// product bulunamadı. hata ver
-			throw new ServiceException(ERROR_CODES.PRODUCT_NOT_FOUND);
-		}
-		return product;
 	}
 
 	@Transactional
@@ -246,16 +253,40 @@ public class ProductService {
 	}
 
 	@Transactional
-	public void transferProductsToReportAndGeneratePDF() {
-
+	public ByteArrayOutputStream transferProductsToReportAndGeneratePDFAllProducts() {
 		List<Product> products = productRepository.findAll();
+		return generatePDF(products);
+	}
 
+	@Transactional
+	public ByteArrayOutputStream transferProductsToReportAndGeneratePDFWarningCount() {
+		List<Product> products = productRepository.findAll();
+		List<Product> warningProducts = new ArrayList<>();
+		for (Product product : products) {
+			if (product.getMinimumCount() >= product.getQuantity()) {
+				warningProducts.add(product);
+			}
+		}
+		return generatePDF(warningProducts);
+	}
+
+	private ByteArrayOutputStream generatePDF(List<Product> products) {
 		Document document = new Document();
 		try {
-			String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-			String fileName = "product_report_" + timestamp + ".pdf";
+//			// Masaüstü dizin yolunu alın
+//			String desktopPath = System.getProperty("user.home") + "/Desktop/";
+//
+//			String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+//			String fileName = "product_report_" + timestamp + ".pdf";
+//
+//			// Dosya yolunu oluşturun
+//			String filePath = desktopPath + fileName;
+//
+//			PdfWriter.getInstance(document, new FileOutputStream(filePath));
 
-			PdfWriter.getInstance(document, new FileOutputStream(fileName));
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			PdfWriter.getInstance(document, byteArrayOutputStream);
+
 			document.setPageSize(PageSize.A4.rotate());
 			document.open();
 			// Maksimum 30 ürün içeren tabloları tutmak için bir liste oluşturun
@@ -282,32 +313,33 @@ public class ProductService {
 				}
 
 				// Her hücre için bir PdfPCell oluşturun ve padding ekleyin
-				PdfPCell cell = new PdfPCell(new Phrase(product.getName()));
+				PdfPCell cell = new PdfPCell(new Phrase(turkishCharConvert(product.getName())));
+				System.out.println(product.getName());
 				cell.setPadding(5); // Padding ayarı
 				table.addCell(cell);
 
-				cell = new PdfPCell(new Phrase(product.getCategory().getName()));
-				cell.setPadding(5); // Padding ayarı
+				cell = new PdfPCell(new Phrase(turkishCharConvert(product.getCategory().getName())));
+				cell.setPadding(5);
 				table.addCell(cell);
 
 				cell = new PdfPCell(new Phrase(Double.toString(product.getPrice())));
-				cell.setPadding(5); // Padding ayarı
+				cell.setPadding(5);
 				table.addCell(cell);
 
 				cell = new PdfPCell(new Phrase(Integer.toString(product.getQuantity())));
-				cell.setPadding(5); // Padding ayarı
+				cell.setPadding(5);
 				table.addCell(cell);
 
 				cell = new PdfPCell(new Phrase(Integer.toString(product.getUnitInStock())));
-				cell.setPadding(5); // Padding ayarı
+				cell.setPadding(5);
 				table.addCell(cell);
 
 				cell = new PdfPCell(new Phrase(Integer.toString(product.getMinimumCount())));
-				cell.setPadding(5); // Padding ayarı
+				cell.setPadding(5);
 				table.addCell(cell);
 
-				cell = new PdfPCell(new Phrase(product.getDescription()));
-				cell.setPadding(5); // Padding ayarı
+				cell = new PdfPCell(new Phrase(turkishCharConvert(product.getDescription())));
+				cell.setPadding(5);
 				table.addCell(cell);
 
 				count++;
@@ -325,11 +357,19 @@ public class ProductService {
 				document.newPage();
 			}
 
-		} catch (DocumentException | IOException e) {
+			return byteArrayOutputStream;
+		} catch (DocumentException e) {
 			e.printStackTrace();
 		} finally {
 			document.close();
 		}
+		return null;
+	}
+
+	private String turkishCharConvert(String val) {
+		return val.replace("ı", "i").replace("ş", "s").replace("ö", "o").replace("ğ", "g").replace("ü", "u")
+				.replace("ç", "c").replace("Ğ", "G").replace("Ü", "U").replace("Ş", "S").replace("İ", "I")
+				.replace("Ö", "O").replace("Ç", "C");
 	}
 
 }

@@ -21,7 +21,8 @@ public class ServiceException extends RuntimeException {
 		PRODUCT_STOCK_ERROR(8, "Product unit in stock less than entry count."),
 
 		USER_NOT_FOUND(9, "User not found."),
-		NOT_ENOUGH_STOCK(10, "Cannot select more products than the quantity in stock.");
+		NOT_ENOUGH_STOCK(10, "Cannot select more products than the quantity in stock."),
+		CATEGORY_NOT_FOUND(11, "Category not found."),;
 
 		private int code;
 		private String message;

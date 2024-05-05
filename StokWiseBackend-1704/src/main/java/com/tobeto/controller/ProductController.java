@@ -1,11 +1,15 @@
 package com.tobeto.controller;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,9 +77,32 @@ public class ProductController {
 	}
 
 	@GetMapping("/reportProduct")
-	public SuccessResponseDTO generateProductReportAndPDF() {
-		productService.transferProductsToReportAndGeneratePDF();
-		return new SuccessResponseDTO("Product report generated successfully!");
+	public ResponseEntity<byte[]> generateProductReportAndPDF() {
+		ByteArrayOutputStream out = productService.transferProductsToReportAndGeneratePDFAllProducts();
+		byte[] pdfBytes = out.toByteArray();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/pdf"));
+		// Here you have to set the actual filename of your pdf
+		String filename = "product_report.pdf";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		ResponseEntity<byte[]> respons = new ResponseEntity<byte[]>(pdfBytes, headers, HttpStatus.OK);
+		return respons;
+
+	}
+
+	@GetMapping("/reportProductWarningCount")
+	public ResponseEntity<byte[]> transferProductsToReportAndGeneratePDFWarningCount() {
+		ByteArrayOutputStream out = productService.transferProductsToReportAndGeneratePDFWarningCount();
+		byte[] pdfBytes = out.toByteArray();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/pdf"));
+		// Here you have to set the actual filename of your pdf
+		String filename = "product_min_report.pdf";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		ResponseEntity<byte[]> respons = new ResponseEntity<byte[]>(pdfBytes, headers, HttpStatus.OK);
+		return respons;
 
 	}
 
