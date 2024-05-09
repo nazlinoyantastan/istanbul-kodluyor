@@ -22,7 +22,8 @@ public class ServiceException extends RuntimeException {
 
 		USER_NOT_FOUND(9, "User not found."),
 		NOT_ENOUGH_STOCK(10, "Cannot select more products than the quantity in stock."),
-		CATEGORY_NOT_FOUND(11, "Category not found."),;
+		CATEGORY_NOT_FOUND(11, "Category not found."),
+		PRODUCT_QUANTİTY_EROR(12, "Product quantity is not zero, cannot delete the product. ");
 
 		private int code;
 		private String message;

@@ -1,7 +1,9 @@
 package com.tobeto.service;
 
 import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,8 +13,12 @@ import org.springframework.stereotype.Service;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
 import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -85,7 +91,17 @@ public class ProductService {
 	}
 
 	public void deleteProduct(UUID id) {
-		productRepository.deleteById(id);
+		Optional<Product> productOptional = productRepository.findById(id);
+
+		if (productOptional.isPresent()) {
+			Product product = productOptional.get();
+			if (product.getQuantity() == 0) {
+
+				productRepository.deleteById(id);
+			} else {
+				throw new ServiceException(ERROR_CODES.PRODUCT_QUANTİTY_EROR);
+			}
+		}
 	}
 
 	///////////////// BURADAN SONRASI EKLENDİ
@@ -255,7 +271,7 @@ public class ProductService {
 	@Transactional
 	public ByteArrayOutputStream transferProductsToReportAndGeneratePDFAllProducts() {
 		List<Product> products = productRepository.findAll();
-		return generatePDF(products);
+		return generatePDF(products, "All Products Report", "All products in the inventory");
 	}
 
 	@Transactional
@@ -267,28 +283,50 @@ public class ProductService {
 				warningProducts.add(product);
 			}
 		}
-		return generatePDF(warningProducts);
+		String message = "There Are No Products Under The Minimum Count";
+		String title = "Low Stock Alert Report";
+		if (warningProducts.isEmpty()) {
+			return generateEmptyPDF(message);
+		}
+
+		return generatePDF(warningProducts, title, "Products under the minimum count");
 	}
 
-	private ByteArrayOutputStream generatePDF(List<Product> products) {
+	private ByteArrayOutputStream generateEmptyPDF(String message) {
 		Document document = new Document();
 		try {
-//			// Masaüstü dizin yolunu alın
-//			String desktopPath = System.getProperty("user.home") + "/Desktop/";
-//
-//			String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-//			String fileName = "product_report_" + timestamp + ".pdf";
-//
-//			// Dosya yolunu oluşturun
-//			String filePath = desktopPath + fileName;
-//
-//			PdfWriter.getInstance(document, new FileOutputStream(filePath));
-
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			PdfWriter.getInstance(document, byteArrayOutputStream);
 
 			document.setPageSize(PageSize.A4.rotate());
 			document.open();
+
+			// Mesajı içeren bir paragraf oluştur
+			Paragraph paragraph = new Paragraph(message, new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			document.add(paragraph);
+
+			return byteArrayOutputStream;
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		} finally {
+			document.close();
+		}
+		return null;
+	}
+
+	private ByteArrayOutputStream generatePDF(List<Product> products, String title, String message) {
+		Document document = new Document();
+		try {
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			PdfWriter.getInstance(document, byteArrayOutputStream);
+
+			document.setPageSize(PageSize.A4.rotate());
+			document.open();
+
+			// Tarihi oluşturun
+			String dateStr = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+
 			// Maksimum 30 ürün içeren tabloları tutmak için bir liste oluşturun
 			List<PdfPTable> tables = new ArrayList<>();
 
@@ -296,25 +334,47 @@ public class ProductService {
 			int count = 0;
 
 			for (Product product : products) {
-				// Her 23 ürün için yeni bir tablo oluşturun
-				if (count % 15 == 0) {
+				// Her 15 ürün için yeni bir tablo oluşturun
+				if (count % 4 == 0) {
 					if (table != null) {
 						tables.add(table);
 					}
-					table = new PdfPTable(7);
+					table = new PdfPTable(7); // 7 sütun
 					table.setWidthPercentage(100);
-					table.addCell("Product Name");
-					table.addCell("Category");
-					table.addCell("Price");
-					table.addCell("Quantity");
-					table.addCell("Unit In Stock");
-					table.addCell("Minimum Count");
-					table.addCell("Description");
+					table.setSpacingBefore(10); // Tablo öncesi boşluk
+					table.setSpacingAfter(10); // Tablo sonrası boşluk
+
+					// Tablo başlığını ekleyin
+					PdfPCell titleCell = new PdfPCell(
+							new Phrase(title, new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)));
+					titleCell.setColspan(7);
+					titleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+					titleCell.setBorder(Rectangle.NO_BORDER);
+					titleCell.setPadding(8); // Başlık için padding
+					table.addCell(titleCell);
+
+					// Tarih hücresini ekleyin
+					PdfPCell dateCell = new PdfPCell(new Phrase("Report Date: " + dateStr));
+					dateCell.setColspan(7);
+					dateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					dateCell.setBorder(Rectangle.NO_BORDER);
+					dateCell.setPadding(5);
+					table.addCell(dateCell);
+
+					// Sütun başlıklarını ekleyin
+					String[] headers = { "Product Name", "Category", "Price", "Quantity", "Unit In Stock", "Min. Count",
+							"Description" };
+					for (String header : headers) {
+						PdfPCell headerCell = new PdfPCell(
+								new Phrase(header, new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD)));
+						headerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+						headerCell.setPadding(8);
+						table.addCell(headerCell);
+					}
 				}
 
-				// Her hücre için bir PdfPCell oluşturun ve padding ekleyin
+				// Ürün bilgilerini ekleyin
 				PdfPCell cell = new PdfPCell(new Phrase(turkishCharConvert(product.getName())));
-				System.out.println(product.getName());
 				cell.setPadding(5); // Padding ayarı
 				table.addCell(cell);
 
@@ -322,7 +382,7 @@ public class ProductService {
 				cell.setPadding(5);
 				table.addCell(cell);
 
-				cell = new PdfPCell(new Phrase(Double.toString(product.getPrice())));
+				cell = new PdfPCell(new Phrase("$ " + Double.toString(product.getPrice())));
 				cell.setPadding(5);
 				table.addCell(cell);
 
