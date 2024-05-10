@@ -32,12 +32,4 @@ public class SignUpController {
 		return ResponseEntity.ok(new SignupResponseDTO(token));
 	}
 
-	// Entegre edilecek
-//	@PostMapping("/admin/signup")
-//	public ResponseEntity<SignupResponseDTO> adminSignUp(
-//			@RequestBody SignupRequestDTO signupRequestDTO) {
-//		String token = loginService.adminSignUp(signupRequestDTO.getEmail(),
-//				signupRequestDTO.getPassword());
-//		return ResponseEntity.ok(new SignupResponseDTO(token));
-//	}
 }
