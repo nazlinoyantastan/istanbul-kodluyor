@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,12 +27,17 @@ public class LoginController {
 	private UserService userService;
 
 	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	@Autowired
 	private TokenService tokenService;
 
 	@PostMapping("/login")
 	public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
 		Optional<User> optionalUser = userService.getUserByEmail(loginRequestDTO.getEmail());
-		if (optionalUser.isPresent() && optionalUser.get().getPassword().equals(loginRequestDTO.getPassword())) {
+		if (optionalUser.isPresent()
+				&& passwordEncoder.matches(loginRequestDTO.getPassword(), optionalUser.get().getPassword())) {
+			// Parola doğrulandı, token üret
 			String token = tokenService.createToken(optionalUser.get());
 			return ResponseEntity.ok(new LoginResponseDTO(token));
 		} else {

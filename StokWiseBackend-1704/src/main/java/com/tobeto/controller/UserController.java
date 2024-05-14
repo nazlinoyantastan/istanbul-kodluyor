@@ -90,7 +90,7 @@ public class UserController {
 	}
 
 	@PostMapping("/changePassword")
-	public ResponseEntity<SuccessResponseDTO> sifreDegistir(@RequestBody ChangePasswordUserRequestDTO dto,
+	public ResponseEntity<SuccessResponseDTO> changePassword(@RequestBody ChangePasswordUserRequestDTO dto,
 			Principal principal) {
 		boolean result = userService.changePassword(dto.getOldPassword(), dto.getNewPassword(), principal.getName());
 		if (result) {
