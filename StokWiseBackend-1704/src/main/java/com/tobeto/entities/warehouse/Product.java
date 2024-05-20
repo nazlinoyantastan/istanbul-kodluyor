@@ -30,6 +30,8 @@ public class Product {
 	private int minimumCount; // Uyarı verecek miktarı
 	private String description;
 
+	private boolean isDeleted = false;
+
 	@OneToMany(mappedBy = "product")
 	private List<ShelfProduct> shelfProducts;
 

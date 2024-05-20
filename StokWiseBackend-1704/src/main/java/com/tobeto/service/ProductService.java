@@ -47,7 +47,7 @@ public class ProductService {
 	private ShelfProductRepository shelfProductRepository;
 
 	public List<Product> getAllProducts() {
-		return productRepository.findAll();
+		return productRepository.findAllActive();
 	}
 
 	public List<GetAllProductsFromShelvesResponseDTO> getAllProductsFromShelves() {
@@ -77,11 +77,6 @@ public class ProductService {
 	}
 
 	public Product updateProduct(Product product) {
-//		Optional<Category> oCategory = categoryRepository
-//				.findById(product.getCategory().getId());
-//		if(oCategory.isPresent()) {
-//			product.setCategory(oCategory.get());
-//		}
 
 		Optional<Product> oProduct = productRepository.findById(product.getId());
 		if (oProduct.isPresent()) {
@@ -90,10 +85,7 @@ public class ProductService {
 		return productRepository.save(product);
 	}
 
-//	public void deleteProduct(UUID id) {
-//		productRepository.deleteById(id);
-//	}
-
+	@Transactional
 	public void deleteProduct(UUID id) {
 
 		Optional<Product> productOptional = productRepository.findById(id);
@@ -102,7 +94,7 @@ public class ProductService {
 			Product product = productOptional.get();
 			if (product.getQuantity() == 0) {
 
-				productRepository.deleteById(id);
+				productRepository.softDeleteById(id);
 			} else {
 				throw new ServiceException(ERROR_CODES.PRODUCT_QUANTİTY_EROR);
 			}
