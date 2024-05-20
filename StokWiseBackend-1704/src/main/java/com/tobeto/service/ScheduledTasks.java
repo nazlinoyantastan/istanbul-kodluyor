@@ -21,6 +21,8 @@ public class ScheduledTasks {
 
 //	@Scheduled(fixedRate = 2592000000L) // 30 günde bir çalışacak (30 gün * 24 saat * 60 dakika * 60 saniye * 1000
 //										// milisaniye)
+//  fixedDelay → program çalışır sonra boşluk koyar
+//  fixedRate → her belirtilen sürede bir çalışır	
 
 //	@Scheduled(fixedRateString = "P1M") // 30 günde bir çalışacak. Bu yazım şekli 1 Ay'a denk gelir. → HATA VERDİ
 

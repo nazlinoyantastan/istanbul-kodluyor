@@ -9,6 +9,5 @@ import lombok.Data;
 @Data
 public class GetAllUsersResponseDTO {
 	private String email;
-	private String password;
 	private List<RoleDTO> roles;
 }

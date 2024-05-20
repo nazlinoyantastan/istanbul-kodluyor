@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -37,11 +35,13 @@ import com.tobeto.repository.warehouse.ProductRepository;
 import com.tobeto.repository.warehouse.ShelfProductRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class ProductService {
 
-	private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
+//	private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
 	@Autowired
 	private ProductRepository productRepository;
@@ -51,9 +51,6 @@ public class ProductService {
 
 	@Autowired
 	private ShelfProductRepository shelfProductRepository;
-
-	@Autowired
-	private LoginService loginService;
 
 	public List<Product> getAllProducts() {
 		return productRepository.findAllActive();
@@ -86,7 +83,7 @@ public class ProductService {
 		product.setAddedByUser(userEmail);
 
 		Product addedProduct = productRepository.save(product);
-		logger.info("Product added: {} by user: {}", addedProduct.getName(), userEmail);
+		log.info("Product added: {} by user: {}", addedProduct.getName(), userEmail);
 		return addedProduct;
 	}
 
@@ -102,7 +99,7 @@ public class ProductService {
 			product.setCategory(oProduct.get().getCategory());
 		}
 		Product updatedProduct = productRepository.save(product);
-		logger.info("Product updated: {} by user: {}", updatedProduct.getName(),
+		log.info("Product updated: {} by user: {}", updatedProduct.getName(),
 				SecurityContextHolder.getContext().getAuthentication().getName());
 		return updatedProduct;
 	}
@@ -140,7 +137,7 @@ public class ProductService {
 				product.setDeleted(true); // Soft delete işlemi için isDeleted alanını true yap
 				product.setDeletedAt(LocalDateTime.now());
 				productRepository.save(product);
-				logger.info("Product deleted: {} by user: {}", product.getName(), userEmail);
+				log.info("Product deleted: {} by user: {}", product.getName(), userEmail);
 			} else {
 				throw new ServiceException(ERROR_CODES.PRODUCT_QUANTİTY_EROR);
 			}

@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,10 +17,13 @@ import com.tobeto.exception.ServiceException;
 import com.tobeto.exception.ServiceException.ERROR_CODES;
 import com.tobeto.repository.user.UserRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class UserService {
 
-	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+//	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
 	@Autowired
 	private UserRepository userRepository;
@@ -46,7 +47,7 @@ public class UserService {
 	public User createUser(User user) {
 		User createdUser = userRepository.save(user);
 		String authenticatedEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-		logger.info("User created: {} by user: {}", createdUser.getEmail(), authenticatedEmail);
+		log.info("User created: {} by user: {}", createdUser.getEmail(), authenticatedEmail);
 		return createdUser;
 	}
 
@@ -55,7 +56,11 @@ public class UserService {
 		if (oUser.isPresent()) {
 			User dbUser = oUser.get();
 			dbUser.setEmail(user.getEmail());
-			dbUser.setPassword(passwordEncoder.encode(user.getPassword())); // Parola şifreleme
+
+			if (!"".equals(user.getPassword())) { // → getPassword null döndürürse false döndürür.
+//				if (!user.getPassword().equals("")) { → getPassword null döndürürse hata döndürür.
+				dbUser.setPassword(passwordEncoder.encode(user.getPassword())); // Parola şifreleme
+			}
 
 			//
 			List<Role> updatedRoles = user.getRoles();
@@ -64,7 +69,7 @@ public class UserService {
 
 			User updatedUser = userRepository.save(dbUser);
 			String authenticatedEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-			logger.info("User updated: {} by user: {}", updatedUser.getEmail(), authenticatedEmail);
+			log.info("User updated: {} by user: {}", updatedUser.getEmail(), authenticatedEmail);
 			return updatedUser;
 		} else {
 			throw new ServiceException(ERROR_CODES.USER_NOT_FOUND);
@@ -92,14 +97,14 @@ public class UserService {
 		User dUser = userRepository.findByEmail(user.getEmail()).orElseThrow();
 
 		if (dUser.getEmail().equals(authenticatedEmail)) {
-			throw new RuntimeException("ADMİN KENDİNİ SİLEMEZ");
+			throw new ServiceException(ERROR_CODES.ADMIN_CAN_NOT_DELETE);
 		}
 
 		dUser.setDeleted(true);
 		dUser.setDeletedAt(LocalDateTime.now());
 
 		userRepository.save(dUser);
-		logger.info("User deleted: {} by user: {}", dUser.getEmail(), authenticatedEmail);
+		log.info("User deleted: {} by user: {}", dUser.getEmail(), authenticatedEmail);
 	}
 
 	public boolean changePassword(String oldPassword, String newPassword, String email) {
@@ -112,7 +117,7 @@ public class UserService {
 				dbUser.setPassword(passwordEncoder.encode(newPassword));
 				userRepository.save(dbUser);
 				String authenticatedEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-				logger.info("Password changed for user: {} by user: {}", email, authenticatedEmail);
+				log.info("Password changed for user: {} by user: {}", email, authenticatedEmail);
 				return true;
 			}
 		}

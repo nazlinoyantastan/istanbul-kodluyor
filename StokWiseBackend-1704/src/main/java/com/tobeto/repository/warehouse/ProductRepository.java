@@ -20,7 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 	@Query("UPDATE Product p SET p.isDeleted = true WHERE p.id = :id")
 	void softDeleteById(@Param("id") UUID id);
 
-	@Query("SELECT p FROM Product p WHERE p.isDeleted = false")
+	@Query("SELECT p FROM Product p WHERE p.isDeleted = false ORDER BY p.name")
 	List<Product> findAllActive();
 
 	@Modifying

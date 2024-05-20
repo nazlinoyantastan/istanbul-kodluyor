@@ -20,7 +20,7 @@ import com.tobeto.dto.signup.SignupRequestDTO;
 import com.tobeto.dto.signup.SignupResponseDTO;
 import com.tobeto.dto.user.ChangePasswordUserRequestDTO;
 import com.tobeto.dto.user.GetAllUsersResponseDTO;
-import com.tobeto.dto.user.UserDTO;
+import com.tobeto.dto.user.UserRequestDTO;
 import com.tobeto.entities.user.User;
 import com.tobeto.service.LoginService;
 import com.tobeto.service.UserService;
@@ -62,14 +62,14 @@ public class UserController {
 	}
 
 	@PostMapping("/user/update")
-	public SuccessResponseDTO userUpdate(@RequestBody UserDTO userDTO) {
+	public SuccessResponseDTO userUpdate(@RequestBody UserRequestDTO userDTO) {
 		User user = requestMapper.map(userDTO, User.class);
 		userService.updateUser(user);
 		return new SuccessResponseDTO("User updated!");
 	}
 
 	@PostMapping("/user/delete")
-	public SuccessResponseDTO deleteUser(@RequestBody UserDTO userDTO) {
+	public SuccessResponseDTO deleteUser(@RequestBody UserRequestDTO userDTO) {
 		User user = requestMapper.map(userDTO, User.class);
 		userService.deleteUser(user);
 		return new SuccessResponseDTO("User deleted!");
@@ -81,7 +81,7 @@ public class UserController {
 			Principal principal) {
 		boolean result = userService.changePassword(dto.getOldPassword(), dto.getNewPassword(), principal.getName());
 		if (result) {
-			return ResponseEntity.ok(new SuccessResponseDTO("Password successfully changed."));
+			return ResponseEntity.ok(new SuccessResponseDTO("Password successfully changed!"));
 		} else {
 			return ResponseEntity.internalServerError().build();
 		}
