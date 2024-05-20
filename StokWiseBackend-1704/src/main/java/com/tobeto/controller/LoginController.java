@@ -1,7 +1,5 @@
 package com.tobeto.controller;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tobeto.dto.login.LoginRequestDTO;
 import com.tobeto.dto.login.LoginResponseDTO;
-import com.tobeto.entities.user.User;
+import com.tobeto.service.LoginService;
 import com.tobeto.service.TokenService;
 import com.tobeto.service.UserService;
 
@@ -27,20 +25,21 @@ public class LoginController {
 	private UserService userService;
 
 	@Autowired
-	private PasswordEncoder passwordEncoder;
+	private TokenService tokenService;
 
 	@Autowired
-	private TokenService tokenService;
+	private LoginService loginService;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 	@PostMapping("/login")
 	public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
-		Optional<User> optionalUser = userService.getUserByEmail(loginRequestDTO.getEmail());
-		if (optionalUser.isPresent()
-				&& passwordEncoder.matches(loginRequestDTO.getPassword(), optionalUser.get().getPassword())) {
-			// Parola doğrulandı, token üret
-			String token = tokenService.createToken(optionalUser.get());
+
+		try {
+			String token = loginService.login(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
 			return ResponseEntity.ok(new LoginResponseDTO(token));
-		} else {
+		} catch (RuntimeException ex) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		}
 	}

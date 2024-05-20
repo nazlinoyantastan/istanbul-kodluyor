@@ -1,5 +1,6 @@
 package com.tobeto.entities.user;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +30,11 @@ public class User {
 	@Column(unique = true)
 	private String email;
 	private String password;
-	private boolean deleted = false;
+	@Column(name = "is_deleted")
+	private boolean isDeleted = false;
+
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
 
 	@ManyToMany
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))

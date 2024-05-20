@@ -1,5 +1,6 @@
 package com.tobeto.repository.warehouse;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,5 +22,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
 	@Query("SELECT p FROM Product p WHERE p.isDeleted = false")
 	List<Product> findAllActive();
+
+	@Modifying
+	@Query("DELETE FROM Product p WHERE p.isDeleted = true AND p.deletedAt <= :timestamp")
+	void deleteOldSoftDeletedProducts(@Param("timestamp") LocalDateTime timestamp);
 
 }

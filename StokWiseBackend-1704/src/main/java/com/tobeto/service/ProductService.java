@@ -2,13 +2,17 @@ package com.tobeto.service;
 
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.itextpdf.text.Document;
@@ -37,6 +41,8 @@ import jakarta.transaction.Transactional;
 @Service
 public class ProductService {
 
+	private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
+
 	@Autowired
 	private ProductRepository productRepository;
 
@@ -45,6 +51,9 @@ public class ProductService {
 
 	@Autowired
 	private ShelfProductRepository shelfProductRepository;
+
+	@Autowired
+	private LoginService loginService;
 
 	public List<Product> getAllProducts() {
 		return productRepository.findAllActive();
@@ -72,32 +81,71 @@ public class ProductService {
 		if (oCategory.isPresent()) {
 			product.setCategory(oCategory.get());
 		}
+		// Kullanıcı emailini al
+		String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+		product.setAddedByUser(userEmail);
 
-		return productRepository.save(product);
+		Product addedProduct = productRepository.save(product);
+		logger.info("Product added: {} by user: {}", addedProduct.getName(), userEmail);
+		return addedProduct;
 	}
 
 	public Product updateProduct(Product product) {
+//		Optional<Category> oCategory = categoryRepository
+//				.findById(product.getCategory().getId());
+//		if(oCategory.isPresent()) {
+//			product.setCategory(oCategory.get());
+//		}
 
 		Optional<Product> oProduct = productRepository.findById(product.getId());
 		if (oProduct.isPresent()) {
 			product.setCategory(oProduct.get().getCategory());
 		}
-		return productRepository.save(product);
+		Product updatedProduct = productRepository.save(product);
+		logger.info("Product updated: {} by user: {}", updatedProduct.getName(),
+				SecurityContextHolder.getContext().getAuthentication().getName());
+		return updatedProduct;
 	}
+
+//	public void deleteProduct(UUID id) {
+//		productRepository.deleteById(id);
+//	}
+
+//	public void deleteProduct(UUID id) {
+//
+//		Optional<Product> productOptional = productRepository.findById(id);
+//
+//		if (productOptional.isPresent()) {
+//			Product product = productOptional.get();
+//			if (product.getQuantity() == 0) {
+//
+//				productRepository.deleteById(id);
+//			} else {
+//				throw new ServiceException(ERROR_CODES.PRODUCT_QUANTİTY_EROR);
+//			}
+//		}
+//	}
 
 	@Transactional
 	public void deleteProduct(UUID id) {
-
 		Optional<Product> productOptional = productRepository.findById(id);
 
 		if (productOptional.isPresent()) {
 			Product product = productOptional.get();
 			if (product.getQuantity() == 0) {
-
-				productRepository.softDeleteById(id);
+//				productRepository.softDeleteById(id);
+				// Silen kullanıcı emailini al
+				String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+				product.setDeletedByUser(userEmail);
+				product.setDeleted(true); // Soft delete işlemi için isDeleted alanını true yap
+				product.setDeletedAt(LocalDateTime.now());
+				productRepository.save(product);
+				logger.info("Product deleted: {} by user: {}", product.getName(), userEmail);
 			} else {
 				throw new ServiceException(ERROR_CODES.PRODUCT_QUANTİTY_EROR);
 			}
+		} else {
+			throw new ServiceException(ERROR_CODES.PRODUCT_NOT_FOUND);
 		}
 	}
 
